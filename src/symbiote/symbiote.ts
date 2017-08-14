@@ -11,9 +11,28 @@ class ReactElement {
 	key = null;
 	ref = null;
 	props: any = {};
+	_composite: ReactCompositeComponent;
 
 	// __DEV__
 	_source: Source = null;
+
+	static from(node: any) {
+		if (node.type === '#') {
+				return node;
+		}
+
+		const {type, props, children} = node;
+
+		const element = new ReactElement(
+			type,
+			props,
+			(children ? [].concat(children) : []).map(ReactElement.from),
+		);
+
+		node._element = element;
+
+		return element;
+	}
 
 	constructor(type, props: any, children: ReactElement[] = []) {
 		props.children = children;
@@ -60,6 +79,8 @@ class ReactCompositeComponent extends ReactComponent {
 	constructor(element: ReactElement) {
 		super(element);
 
+		element._composite = this;
+
 		if (Array.isArray(element.props.children)) {
 			this._renderedChildren = element.props.children.map(child => child instanceof ReactElement
 				? new ReactCompositeComponent(child)
@@ -82,22 +103,8 @@ class ReactTopLevelWrapper extends ReactCompositeComponent {
 	static displayName = 'ReactTopLevelWrapper';
 	static isReactTopLevelWrapper = true;
 
-	constructor(tree) {
-		function convert(el) {
-			if (el.type === '#') {
-				return el;
-			}
-
-			const {type, props, children} = el;
-
-			return new ReactElement(
-				type,
-				props,
-				(children ? [].concat(children) : []).map(convert),
-			);
-		}
-
-		super(convert(tree));
+	constructor(root) {
+		super(ReactElement.from(root));
 	}
 }
 
@@ -139,8 +146,8 @@ export function connect(symbiote: Symbiote) {
 			Reconciler,
 		});
 
-		symbiote.onUpdate(() => {
-			// Reconciler.receiveComponent();
+		symbiote.onUpdate(({_element: {_composite}}) => {
+			Reconciler.receiveComponent(_composite);
 		});
 	}
 }
