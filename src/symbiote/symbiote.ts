@@ -5,43 +5,16 @@ interface Source {
 	lineNumber: number;
 }
 
-class ReactElement {
-	dom = null;
-	type = null;
-	key = null;
-	ref = null;
-	props: any = {};
-	_composite: ReactCompositeComponent;
+interface ReactElement {
+	dom: any;
+	key?: any;
+	ref?: any;
+	type: any;
+	props: any;
+	children?: ReactElement[];
 
 	// __DEV__
-	_source: Source = null;
-
-	static from(node: any) {
-		if (node.type === '#') {
-				return node;
-		}
-
-		const {type, props, children} = node;
-
-		const element = new ReactElement(
-			type,
-			props,
-			(children ? [].concat(children) : []).map(ReactElement.from),
-		);
-
-		node._element = element;
-
-		return element;
-	}
-
-	constructor(type, props: any, children: ReactElement[] = []) {
-		props.children = children;
-
-		this.type = type;
-		this.props = props;
-		this.key = props.key;
-		this.ref = props.ref;
-	}
+	_source: Source;
 }
 
 class ReactComponent {
@@ -71,6 +44,9 @@ class ReactComponent {
 	}
 }
 
+function isPrimitive({type}) {
+	return type === '#' || type === '!' || type === '<';
+}
 
 class ReactCompositeComponent extends ReactComponent {
 	_hostNode: any;
@@ -79,16 +55,16 @@ class ReactCompositeComponent extends ReactComponent {
 	constructor(element: ReactElement) {
 		super(element);
 
-		element._composite = this;
+		// element._composite = this;
 
-		if (Array.isArray(element.props.children)) {
-			this._renderedChildren = element.props.children.map(child => child instanceof ReactElement
-				? new ReactCompositeComponent(child)
-				: {
+		if (Array.isArray(element.children)) {
+			this._renderedChildren = element.children.map(child => isPrimitive(child)
+				? {
 					props: null,
 					_currentElement: child.children,
 					_stringText: child.children
 				}
+				: new ReactCompositeComponent(child)
 			);
 		}
 
@@ -104,7 +80,7 @@ class ReactTopLevelWrapper extends ReactCompositeComponent {
 	static isReactTopLevelWrapper = true;
 
 	constructor(root) {
-		super(ReactElement.from(root));
+		super(root);
 	}
 }
 
@@ -114,7 +90,7 @@ export function getHook() {
 
 export interface Symbiote {
 	onUpdate?(fn: Function): void
-	getTopLevels(): any[];
+	getInitialRoots(): any[];
 }
 
 export function connect(symbiote: Symbiote) {
@@ -123,30 +99,31 @@ export function connect(symbiote: Symbiote) {
 	if (typeof hook.inject === 'function') {
 		const Reconciler =  {
 			receiveComponent(internalInstance) {
+				// todo
 			},
 		};
 
 		hook.inject({
 			ComponentTree: {
-				getClosestInstanceFromNode() {
+				getClosestInstanceFromNode(domNode) {
 					console.warn('[symbiote] getClosestInstanceFromNode not supported')
 				},
 
-				getNodeFromInstance(component: ReactCompositeComponent) {
-					return component._currentElement.dom;
-				}
+				getNodeFromInstance: function (target) {
+                    return target._currentElement.dom;
+                },
 			},
 
 			Mount: {
 				get _instancesByReactRootID() {
-					return symbiote.getTopLevels();
+					return symbiote.getInitialRoots().map(root => new ReactTopLevelWrapper(root));
 				},
 			},
 
 			Reconciler,
 		});
 
-		symbiote.onUpdate(({_element: {_composite}}) => {
+		symbiote.onUpdate && symbiote.onUpdate(({_element: {_composite}}) => {
 			Reconciler.receiveComponent(_composite);
 		});
 	}
