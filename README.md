@@ -6,16 +6,13 @@ A module that allows use [React DevTools](https://github.com/facebook/react-devt
 npm i --save-dev react-devtools-symbiote
 ```
 
+
 ### Usage
 
 ```ts
 import {connect} from 'react-devtools-symbiote';
 
-connect({
-	onUpdate(fn) {
-		// alas, todo
-	},
-
+const symbiote = connect({
 	getInitialRoots() {
 		return [{
 			// VNode
@@ -35,7 +32,14 @@ connect({
 		}];
 	},
 });
+
+// Update
+symbiote.update(vnode);
+
+// Unmount/destroy
+symbiote.destroy(vnode);
 ```
+
 
 #### VNode
 
@@ -47,6 +51,14 @@ interface VNode {
 	type: Function | string;
 	props: Object;
 	children?: VNode[];
+	_source: Source;
+	setProps?(newProps: object);
+	setState?(newState: object);
+}
+
+interface Source {
+	fileName: string;
+	lineNumber: number;
 }
 ```
 
