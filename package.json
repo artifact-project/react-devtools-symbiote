@@ -1,6 +1,6 @@
 {
   "name": "react-devtools-symbiote",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A module that allows use React DevTools for inspection your component hierarchy without React.",
   "author": "RubaXa <ibnRubaXa@gmail.com>",
   "license": "MIT",
