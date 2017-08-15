@@ -19,16 +19,16 @@ const symbiote = connect({
 			type: AppClass,
 			dom: document.getElementById('app'),
 			props: {name: 'MyApp'},
-			children: {
+			children: [{
 				type: 'div',
 				props: {
 					className: 'text',
 				},
-				children: {
+				children: [{
 					type: '#', // text node
 					children: 'Wow!1',
-				},
-			},
+				}],
+			}],
 		}];
 	},
 });
@@ -50,7 +50,7 @@ interface VNode {
 	dom: HTMLElement | Text;
 	type: Function | string;
 	props: Object;
-	children?: VNode[];
+	children?: string | VNode[];
 	_source: Source;
 	setProps?(newProps: object);
 	setState?(newState: object);
