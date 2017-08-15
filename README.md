@@ -37,7 +37,7 @@ const symbiote = connect({
 symbiote.update(vnode);
 
 // Unmount/destroy
-symbiote.destroy(vnode);
+symbiote.unmount(vnode);
 ```
 
 
