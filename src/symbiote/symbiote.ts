@@ -1,21 +1,23 @@
 declare const __REACT_DEVTOOLS_GLOBAL_HOOK__: any;
 
-interface Source {
+export interface Source {
 	fileName: string;
 	lineNumber: number;
 }
 
-interface ReactElement {
-	dom: any;
-	key?: any;
-	ref?: any;
+export interface ReactElement {
+	dom: HTMLElement | Text;
+	key?: string;
+	ref?: string | Function;
 	type: any;
-	props: any;
+	props: object;
 	children?: ReactElement[];
 
 	// __DEV__
 	_source: Source;
 }
+
+const domStore = new WeakMap<HTMLElement | Text, ReactCompositeComponent>();
 
 class ReactComponent {
 	props = {};
@@ -55,16 +57,18 @@ class ReactCompositeComponent extends ReactComponent {
 	constructor(element: ReactElement) {
 		super(element);
 
+		// element.dom._composite = this;
 		// element._composite = this;
+		domStore.set(element.dom, this);
 
 		if (Array.isArray(element.children)) {
-			this._renderedChildren = element.children.map(child => isPrimitive(child)
+			this._renderedChildren = element.children.map(node => isPrimitive(node)
 				? {
 					props: null,
-					_currentElement: child.children,
-					_stringText: child.children
+					_currentElement: node.children,
+					_stringText: node.children
 				}
-				: new ReactCompositeComponent(child)
+				: new ReactCompositeComponent(node)
 			);
 		}
 
@@ -90,7 +94,7 @@ export function getHook() {
 
 export interface Symbiote {
 	onUpdate?(fn: Function): void
-	getInitialRoots(): any[];
+	getInitialRoots(): ReactElement[];
 }
 
 export function connect(symbiote: Symbiote) {
@@ -105,8 +109,12 @@ export function connect(symbiote: Symbiote) {
 
 		hook.inject({
 			ComponentTree: {
-				getClosestInstanceFromNode(domNode) {
-					console.warn('[symbiote] getClosestInstanceFromNode not supported')
+				getClosestInstanceFromNode(target) {
+					do {
+						if (domStore.has(target)) {
+							return domStore.get(target);
+						}
+					} while (target = target.parentNode);
 				},
 
 				getNodeFromInstance: function (target) {
