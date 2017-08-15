@@ -61,5 +61,4 @@ typings/
 .npmyrc
 
 # Distributive
-dist
 compiled

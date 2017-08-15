@@ -1,0 +1,141 @@
+<html>
+<head>
+	<title>React DevTools Symbiote</title>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet"/>
+	<style>
+		html,
+		body {
+			font-family: 'Open Sans', sans-serif;
+			font-size: 16px;
+			margin: 0;
+			padding: 0;
+		}
+
+		h1 {
+			padding: 40px 0 10px;
+			text-align: center;
+			font-size: 250%;
+			text-shadow: 0 1px 1px rgba(0,0,0,.3);
+		}
+
+		a {
+			color: inherit;
+			text-decoration: none;
+			border-bottom: 2px solid rgba(0,0,0,.5);
+		}
+
+		.hint {
+			position: fixed;
+			bottom: 15px;
+			right: 15px;
+			white-space: nowrap;
+		}
+
+		pre {
+			padding: 20px;
+		}
+
+		pre, code {
+			background-color: #f5f5f5 !important;
+		}
+
+		code {
+			max-width: 520px;
+			font-size: 13px;
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="container">
+		<h1>
+			<a href="https://github.com/artifact-project">React DevTools Symbiote</a>
+			<a class="github-button" href="https://github.com/artifact-project/react-devtools-symbiote" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star artifact-project/react-devtools-symbiote on GitHub">Star</a>
+		</h1>
+
+		<div class="hint">
+			Open DevTools &gt; React <sup>(cmd + alt + j)</sup>
+		</div>
+	</div>
+
+	<pre><code id="code-example" class="js"></code></pre>
+
+	<script src="dist/react-devtools-symbiote.js"></script>
+
+	<script id="code-source">
+		const container = document.getElementById('container');
+		const root = {
+			type: function RootView() {},
+			dom: container,
+			children: [convert(container)],
+		};
+
+		/* YO, SEE HERE AND OPEN CONSOLE */
+		const symbiote = reactDevToolsSymbiote.connect({
+			getInitialRoots: () => [root],
+		});
+
+		function convert(dom) {
+			if (dom.nodeType === dom.TEXT_NODE) {
+				return {
+					type: '#',
+					children: dom.nodeValue,
+				};
+			}
+
+			return {
+				type: dom.nodeName.toLowerCase(),
+				dom,
+				props: attrsToProps(dom.attributes),
+				children: [].map.call(dom.childNodes, convert),
+			};
+		}
+
+		function attrsToProps(attributes) {
+			return [].reduce.call(attributes, (props, {name, value}) => {
+				props[name] = value;
+				return props;
+			}, {})
+		}
+	</script>
+
+	<script>
+		const source = document.getElementById('code-source');
+		const example = document.getElementById('code-example');
+
+		function clean(value, remove) {
+			return value
+				.split('\n')
+				.slice(1, -1)
+				.map(line => line.substr(remove).replace(/\t/g, '    '))
+				.join('\n')
+			;
+		}
+
+		example.textContent = clean(source.textContent, 2);
+
+		console.log(clean(`
+			// At first look to ReactTab, after trying this:
+			symbiote.unmount(root.children[0].children[1]); // h1 remove
+
+			// and this
+			symbiote.update({
+				...root.children[0],
+				props: {class: 'js-app'},
+				children: [{
+					type: '#',
+					children: 'Wow',
+				}],
+			});
+		`, 3))
+	</script>
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+
+	<!-- Place this tag in your head or just before your close body tag. -->
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+</html>
