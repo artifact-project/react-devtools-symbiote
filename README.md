@@ -1,6 +1,8 @@
 React DevTools Symbiote
 -----------------------
 A module that allows use [React DevTools](https://github.com/facebook/react-devtools) for inspection your component hierarchy without React.
+<br/>
+<a href="https://artifact-project.github.io/react-devtools-symbiote/">See DEMO</a>
 
 ```ts
 npm i --save-dev react-devtools-symbiote
