@@ -53,9 +53,12 @@ interface VNode {
 	type: Function | string;
 	props: Object;
 	children?: string | VNode[];
+
+	setProps?: (newProps: object) => void;
+	setState?: (newState: object) => void;
+	forceUpdate: () => void;
+
 	_source: Source;
-	setProps?(newProps: object);
-	setState?(newState: object);
 }
 
 interface Source {

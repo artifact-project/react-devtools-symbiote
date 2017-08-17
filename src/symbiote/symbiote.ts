@@ -20,11 +20,18 @@ export interface ReactElement {
 	state?: object;
 	children?: string | ReactElement[];
 
+	setProps?: (newProps: object) => void;
+	setState?: (newState: object) => void;
+	forceUpdate?: () => void;
+
 	// __DEV__
 	_source?: Source;
 }
 
 const domStore = new WeakMap<HTMLElement | Text, ReactCompositeComponent>();
+
+function forceUpdateDummy() {
+}
 
 class ReactComponent {
 	props = {};
@@ -49,9 +56,10 @@ class ReactComponent {
 			type,
 			props,
 			state,
-			forceUpdate() {
-				debugger;
-			}
+
+			setProps: element.setProps,
+			setState: element.setState,
+			forceUpdate: (element.setProps || element.setState) && (element.forceUpdate || forceUpdateDummy),
 		};
 	}
 }
