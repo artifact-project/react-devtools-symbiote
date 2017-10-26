@@ -4,6 +4,7 @@
   "description": "A module that allows use React DevTools for inspection your component hierarchy without React.",
   "author": "RubaXa <ibnRubaXa@gmail.com>",
   "license": "MIT",
+  "repository": "git@github.com:artifact-project/react-devtools-symbiote.git",
   "main": "index.js",
   "scripts": {
     "test": "jest --coverage",
